@@ -1,6 +1,11 @@
 <?php
 
 namespace App\Http\Controllers\API\Backend;
+use App\Models\User;
+use App\Models\Portal;
+use App\Models\Role;
+use App\Models\Permission;
+
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -12,8 +17,11 @@ class UserController extends Controller
      */
     public function index()
     {
+
+        $users = User::with('portal')->get();
         return response()->json([
-            'message' => 'Welcome to the Backend USer API!'
+            'status' => true,
+            'data' => $users
         ]);
     }
 
@@ -22,6 +30,56 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+
+         // Validate the incoming request data
+
+         $validator =  \Validator::make($request->all(), [
+                'firstname' => 'required|string|max:255',
+                'lastname' => 'required|string|max:255',
+                'subdomain' => 'required|string|max:255|unique:users,subdomain',
+                'email' => 'required|string|email|max:255|unique:users,email',
+                'password' => 'required|string|min:8',
+                'portal_name' => 'required|string|max:255',
+                'portal_logo' => 'nullable|string|max:255', // Optional
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json($validator->errors(), 422);
+             }
+
+        // // Create the user
+        $user = User::create([
+            'fullname' => $request->fullname+$request->lastname,
+            'subdomain' => $request->subdomain,
+            'email' => $request->email,
+            'password' => bcrypt($request->password),
+        ]);
+
+        // // Create the associated portal
+        // $portal = Portal::create([
+        //     'user_id' => $user->id,
+        //     'title' => $validated['portal_name'],
+        //     'logo' => $validated['portal_logo'] ?? null, // Optional field
+        // ]);
+
+        // // Retrieve default role (user)
+        // $defaultRole = Role::where('name', 'user')->first();
+
+        // // Retrieve default permission (create-post)
+        // $defaultPermission = Permission::where('name', 'create-post')->first();
+
+        // // Attach the default role and permission to the user
+        // $user->roles()->attach($defaultRole);
+        // $user->permissions()->attach($defaultPermission);
+
+        // // Return the created user with portal, role, and permissions information
+        // return response()->json([
+        //     'user' => $user,
+        //     'portal' => $portal,
+        //     'role' => $defaultRole,
+        //     'permissions' => [$defaultPermission],
+        // ], 201); // 201 Created status
+        
     }
 
     /**

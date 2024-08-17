@@ -3,6 +3,10 @@
 namespace App\Http\Controllers\API\Backend;
 
 use App\Http\Controllers\Controller;
+
+use App\Traits\SubdomainHandlerTrait;
+
+
 use Illuminate\Http\Request;
 use App\Models\User;
 
@@ -14,13 +18,16 @@ use App\Models\Category;
 class ArticleController extends Controller
 {
 
+    use SubdomainHandlerTrait; 
+
+
     protected $subdomain;
     protected $portal_id;
 
     public function __construct(Request $request)
     {
-        $this->subdomain = $this->extractSubdomain($request);
-        $this->portal_id = $this->getUserIdBySubdomain($this->subdomain);
+        $this->subdomain =  $this->getSubdomain($request);
+        $this->portal_id = $this->getPortalIdBySubdomain($this->subdomain);
     }
 
 
@@ -44,7 +51,7 @@ class ArticleController extends Controller
     public function store(Request $request)
     {
 
-        $this->portal_id;
+        echo  $this->portal_id;
     }
 
     /**
@@ -72,18 +79,5 @@ class ArticleController extends Controller
     }
 
 
-    protected function extractSubdomain(Request $request)
-    {
-        // Assuming the subdomain is the first part of the host
-        return explode('.', $request->getHost())[0];
-    }
 
-
-    protected function getUserIdBySubdomain($subdomain)
-    {
-        $user = User::where('subdomain', $subdomain)->first();
-        $portal = Portal::where('user_id', $user->id)->first();
-
-        return $portal ? $portal->id : null; // Return the user ID if found, or null if not
-    }
 }
