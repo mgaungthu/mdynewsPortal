@@ -47,38 +47,51 @@ class UserController extends Controller
                 return response()->json($validator->errors(), 422);
              }
 
+
+            //  return response()->json([
+            //     'data' => [
+            //         'fullname' => $request->firstname . ' ' . $request->lastname,
+            //         'subdomain' => $request->subdomain,
+            //         'email' => $request->email,
+            //         'password' => bcrypt($request->password),
+            //     ],
+            //     'message' => "data ok",
+            // ], 201);
+
         // // Create the user
+        $fullname = $request->firstname . ' ' . $request->lastname;
+     
         $user = User::create([
-            'fullname' => $request->fullname+$request->lastname,
+            'fullname' => $fullname,
             'subdomain' => $request->subdomain,
             'email' => $request->email,
             'password' => bcrypt($request->password),
         ]);
 
         // // Create the associated portal
-        // $portal = Portal::create([
-        //     'user_id' => $user->id,
-        //     'title' => $validated['portal_name'],
-        //     'logo' => $validated['portal_logo'] ?? null, // Optional field
-        // ]);
+        $portal = Portal::create([
+            'user_id' => $user->id,
+            'title' => $request->portal_name,
+            'logo' => $request->portal_logo, // Optional field
+        ]);
 
         // // Retrieve default role (user)
-        // $defaultRole = Role::where('name', 'user')->first();
+        $defaultRole = Role::where('name', 'user')->first();
 
         // // Retrieve default permission (create-post)
-        // $defaultPermission = Permission::where('name', 'create-post')->first();
+        $defaultPermission = Permission::where('name', 'create-post')->first();
 
         // // Attach the default role and permission to the user
-        // $user->roles()->attach($defaultRole);
-        // $user->permissions()->attach($defaultPermission);
+        $user->roles()->attach($defaultRole);
+        $user->permissions()->attach($defaultPermission);
 
         // // Return the created user with portal, role, and permissions information
-        // return response()->json([
-        //     'user' => $user,
-        //     'portal' => $portal,
-        //     'role' => $defaultRole,
-        //     'permissions' => [$defaultPermission],
-        // ], 201); // 201 Created status
+        return response()->json([
+            'user' => $user,
+            'portal' => $portal,
+            'role' => $defaultRole,
+            'permissions' => [$defaultPermission],
+        ], 201); // 201 Created status
         
     }
 
